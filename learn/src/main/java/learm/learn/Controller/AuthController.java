@@ -3,6 +3,7 @@ package learm.learn.Controller;
 import learm.learn.Entity.User;
 import learm.learn.Services.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,7 +11,9 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "*")
+// ✅ Either remove this line (recommended) 
+// ✅ OR use explicit origin — no wildcard allowed with allowCredentials(true)
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class AuthController {
 
     @Autowired
@@ -24,7 +27,7 @@ public class AuthController {
             return ResponseEntity.ok(Map.of("message", msg));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError()
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "Registration failed: " + e.getMessage()));
         }
     }
@@ -40,7 +43,7 @@ public class AuthController {
             return ResponseEntity.ok(Map.of("message", msg));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError()
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "Error while resending OTP: " + e.getMessage()));
         }
     }
@@ -59,7 +62,7 @@ public class AuthController {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError()
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "Error while verifying OTP: " + e.getMessage()));
         }
     }
@@ -72,15 +75,15 @@ public class AuthController {
         try {
             String tokenOrMsg = authService.login(email, password);
 
-            // If looks like a token (contains 3 parts)
-            if (tokenOrMsg.contains(".") && tokenOrMsg.split("\\.").length == 3) {
+            // If looks like a JWT token (has 3 parts separated by '.')
+            if (tokenOrMsg != null && tokenOrMsg.contains(".") && tokenOrMsg.split("\\.").length == 3) {
                 return ResponseEntity.ok(Map.of("token", tokenOrMsg));
             } else {
-                return ResponseEntity.status(401).body(Map.of("message", tokenOrMsg));
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", tokenOrMsg));
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError()
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "Login failed: " + e.getMessage()));
         }
     }
@@ -93,7 +96,7 @@ public class AuthController {
             return ResponseEntity.ok(Map.of("message", msg));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError()
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "Error while sending reset OTP: " + e.getMessage()));
         }
     }
@@ -114,7 +117,7 @@ public class AuthController {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError()
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "Error while resetting password: " + e.getMessage()));
         }
     }

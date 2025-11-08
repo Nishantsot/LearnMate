@@ -30,33 +30,66 @@ public class AuthService {
     private static final long OTP_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 
     // ✅ REGISTER
-    public String register(User user) {
-        try {
-            if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-                return "Email already registered";
+   public String register(User user) {
+    try {
+        Optional<User> existingOpt = userRepository.findByEmail(user.getEmail());
+
+        // 🟡 Case 1: User already exists
+        if (existingOpt.isPresent()) {
+            User existing = existingOpt.get();
+
+            // 🚫 Same role & already verified
+            if (existing.isVerified() && existing.getRole() == user.getRole()) {
+                return "Email already registered and verified.";
             }
 
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-            user.setVerified(false);
-            String otp = generateOtp();
-            user.setOtp(otp);
-            user.setOtpGeneratedAt(Instant.now().toEpochMilli());
+            // 🔁 Role change request (e.g. Student → Admin)
+            if (existing.isVerified() && existing.getRole() != user.getRole()) {
+                String otp = generateOtp();
+                existing.setOtp(otp);
+                existing.setOtpGeneratedAt(Instant.now().toEpochMilli());
+                existing.setVerified(false);
+                existing.setRole(user.getRole());
+                existing.setPassword(passwordEncoder.encode(user.getPassword()));
+                userRepository.save(existing);
 
-            // default role if null
-            if (user.getRole() == null) user.setRole(Role.STUDENT);
+                emailService.sendOtp(existing.getEmail(), otp, "Role Change Verification");
+                System.out.println("🔁 Role change OTP for " + existing.getEmail() + " = " + otp);
 
-            userRepository.save(user);
+                return "Role updated to " + existing.getRole() + ". OTP sent for verification.";
+            }
 
-            System.out.println("✅ OTP for " + user.getEmail() + " = " + otp);
-            // Uncomment to send via email
-            // emailService.sendOtp(user.getEmail(), otp, "Email Verification");
-
-            return "OTP sent to your email. Please verify your account.";
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "Registration failed: " + e.getMessage();
+            // ⚠️ Not verified yet → resend OTP
+            if (!existing.isVerified()) {
+                String otp = generateOtp();
+                existing.setOtp(otp);
+                existing.setOtpGeneratedAt(Instant.now().toEpochMilli());
+                userRepository.save(existing);
+                emailService.sendOtp(existing.getEmail(), otp, "Email Verification (Resent)");
+                System.out.println("🔁 Resent OTP for " + existing.getEmail() + " = " + otp);
+                return "This email is already registered but not verified. A new OTP has been sent.";
+            }
         }
+
+        // 🟢 Case 2: New user registration
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setVerified(false);
+        String otp = generateOtp();
+        user.setOtp(otp);
+        user.setOtpGeneratedAt(Instant.now().toEpochMilli());
+        if (user.getRole() == null) user.setRole(Role.STUDENT);
+        userRepository.save(user);
+
+        emailService.sendOtp(user.getEmail(), otp, "Email Verification");
+        System.out.println("✅ OTP for " + user.getEmail() + " = " + otp);
+
+        return "OTP sent to your email. Please verify your account.";
+    } catch (Exception e) {
+        e.printStackTrace();
+        return "Registration failed: " + e.getMessage();
     }
+}
+
 
     // ✅ VERIFY OTP
     public String verifyOtp(String email, String otp) {
@@ -116,7 +149,7 @@ public String forgotPassword(String email) {
 
         System.out.println("🔑 Password Reset OTP for " + email + " = " + otp); // 👈 add this line
 
-        // emailService.sendOtp(user.getEmail(), otp, "Password Reset OTP");
+         emailService.sendOtp(user.getEmail(), otp, "Password Reset OTP");
         return "Password reset OTP sent to your email";
     } catch (Exception e) {
         e.printStackTrace();
