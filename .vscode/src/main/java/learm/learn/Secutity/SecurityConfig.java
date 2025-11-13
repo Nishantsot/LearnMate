@@ -21,66 +21,76 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity // 👈 enables @PreAuthorize on controller/service methods
-
+@EnableMethodSecurity(prePostEnabled = true) // ✅ enables @PreAuthorize("hasRole('TUTOR')")
 public class SecurityConfig {
 
     @Autowired
-    private JwtFilter jwtFilter; // ✅ Add your custom JWT filter
+    private JwtFilter jwtFilter; // ✅ your custom JWT filter
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // ✅ Enable CORS and disable CSRF
+            // ✅ Enable CORS and disable CSRF (important for React frontend)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
 
-            // ✅ Authorization rules
+            // ✅ Define authorization rules
             .authorizeHttpRequests(auth -> auth
+                // Public routes (register, login, verify OTP, forgot password, etc.)
                 .requestMatchers(
-                    "/auth/**",        // Allow registration, login, OTP, etc.
+                    "/auth/**",
                     "/error",
                     "/swagger-ui/**",
                     "/v3/api-docs/**"
                 ).permitAll()
-                // 🔒 Only admin can access /admin endpoints
+
+                // 👑 Admin-only routes
                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                           .requestMatchers("/tutor/**").hasRole("TUTOR")
+
+                // 🧑‍🏫 Tutor-only routes
+                .requestMatchers("/tutor/**").hasRole("TUTOR")
+
+                // 🎓 Student-only routes (if you add later)
+                .requestMatchers("/student/**").hasRole("STUDENT")
+
+                // All other routes must be authenticated
                 .anyRequest().authenticated()
             )
 
-            // ✅ Stateless JWT sessions
+            // ✅ Use JWT (stateless session)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            // ✅ Add your JWT filter before Spring's built-in auth filter
+            // ✅ Add JWT filter before default authentication filter
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
 
-            // ✅ Disable form and HTTP basic login (we use JWT instead)
+            // ✅ Disable form & basic login
             .formLogin(form -> form.disable())
             .httpBasic(basic -> basic.disable());
 
         return http.build();
     }
 
-    // ✅ Proper CORS Configuration
+    // ✅ Proper CORS setup for React
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:5173")); // your React app
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(List.of("http://localhost:5173"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", config);
         return source;
     }
 
+    // ✅ Password encoder (BCrypt)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // ✅ Auth manager
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
