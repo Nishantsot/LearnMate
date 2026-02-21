@@ -37,10 +37,18 @@ public class TutorService {
     }
 
     private User getTutorByEmail(String email){
-        return userRepo.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Tutor not found"));
-    }
 
+    System.out.println("Logged in tutor email: " + email);
+
+    User user = userRepo.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+
+    System.out.println("Role: " + user.getRole());
+    System.out.println("Verified: " + user.isVerified());
+    System.out.println("Active: " + user.isActive());
+
+    return user;
+}
     /* Dashboard stats */
     public Map<String,Object> dashboard(String tutorEmail){
         User tutor = getTutorByEmail(tutorEmail);
@@ -54,24 +62,36 @@ public class TutorService {
         return map;
     }
 
+    public List<Course> myCourses(String tutorEmail) {
+    User tutor = getTutorByEmail(tutorEmail);
+    return courseRepo.findByTutor(tutor);
+}
     /* Courses */
-    public List<Course> myCourses(String tutorEmail){
-        return courseRepo.findByTutor(getTutorByEmail(tutorEmail));
+   public Course createCourse(String tutorEmail, CreateCourseRequest req){
+
+    if (req.getTitle() == null || req.getTitle().isBlank()) {
+        throw new IllegalArgumentException("Course title is required");
     }
 
-    public Course createCourse(String tutorEmail, CreateCourseRequest req){
-        User tutor = getTutorByEmail(tutorEmail);
-        Course c = Course.builder()
-                .title(req.getTitle())
-                .description(req.getDescription())
-                .category(req.getCategory())
-                .price(req.getPrice())
-                .durationMinutes(req.getDurationMinutes())
-                .status(CourseStatus.PENDING) // admin will approve
-                .tutor(tutor)
-                .build();
-        return courseRepo.save(c);
+    if (req.getPrice() == null) {
+        throw new IllegalArgumentException("Course price is required");
     }
+
+    User tutor = getTutorByEmail(tutorEmail);
+
+    Course course = Course.builder()
+            .title(req.getTitle())
+            .description(req.getDescription())
+            .category(req.getCategory())
+            .price(req.getPrice())
+            .durationMinutes(req.getDurationMinutes())
+            .status(CourseStatus.PENDING)
+            .tutor(tutor)
+            .build();
+
+    return courseRepo.save(course);
+}
+
 
     public Course updateCourse(String tutorEmail, Long courseId, CreateCourseRequest req){
         Course c = courseRepo.findById(courseId).orElseThrow(() -> new RuntimeException("Course not found"));
@@ -108,9 +128,13 @@ public class TutorService {
         return sessionRepo.save(s);
     }
 
-    public List<ClassSession> upcomingSessions(String tutorEmail){
-        return sessionRepo.findByTutorAndStartTimeAfter(getTutorByEmail(tutorEmail), LocalDateTime.now());
-    }
+   public List<ClassSession> upcomingSessions(String tutorEmail){
+
+    User tutor = getTutorByEmail(tutorEmail);
+
+    return sessionRepo.findByTutorOrderByStartTimeDesc(tutor);
+
+}
 
     public Optional<ClassSession> findByRoom(String roomId){
         return sessionRepo.findByRoomId(roomId);
@@ -122,6 +146,23 @@ public class TutorService {
         s.setStatus(SessionStatus.COMPLETED);
         sessionRepo.save(s);
     }
+    public ClassSession startSession(Long sessionId, String tutorEmail){
+
+    User tutor = getTutorByEmail(tutorEmail);
+
+    ClassSession session = sessionRepo.findById(sessionId)
+            .orElseThrow(() -> new RuntimeException("Session not found"));
+
+    // Security check
+    if(!session.getTutor().getId().equals(tutor.getId()))
+        throw new RuntimeException("Forbidden");
+
+    // Update status
+    session.setStatus(SessionStatus.LIVE);
+
+    return sessionRepo.save(session);
+
+}
 
     /* Materials */
     public Material addMaterial(String tutorEmail, Long courseId, String title, String url){

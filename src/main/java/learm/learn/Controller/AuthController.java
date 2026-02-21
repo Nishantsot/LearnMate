@@ -21,16 +21,19 @@ public class AuthController {
 
     // ✅ REGISTER
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
-        try {
-            String msg = authService.register(user);
-            return ResponseEntity.ok(Map.of("message", msg));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "Registration failed: " + e.getMessage()));
-        }
-    }
+public ResponseEntity<?> register(@RequestBody User incoming) {
+
+    User user = new User();
+    user.setName(incoming.getName());
+    user.setEmail(incoming.getEmail());
+    user.setPassword(incoming.getPassword());
+    user.setRole(incoming.getRole());   // 👈 VERY IMPORTANT
+; 
+
+    String msg = authService.register(user);
+    return ResponseEntity.ok(Map.of("message", msg));
+}
+
 
     // ✅ RESEND OTP
     @PostMapping("/resend-otp")

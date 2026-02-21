@@ -15,6 +15,11 @@ public class AdminController {
 
     @Autowired
     private AdminService adminService;
+    @GetMapping("/courses")
+public ResponseEntity<?> allCourses() {
+    return ResponseEntity.ok(adminService.getAllCourses());
+}
+
 
     // ✅ Dashboard Stats
     @GetMapping("/dashboard")
@@ -23,22 +28,24 @@ public class AdminController {
     }
 
     // ✅ Pending Tutors List
-    @GetMapping("/pending-tutors")
+@GetMapping("/tutors/pending")
     public ResponseEntity<List<Map<String, Object>>> getPendingTutors() {
         return ResponseEntity.ok(adminService.getPendingTutors());
     }
 
-    // ✅ Approve Tutor
-    @PutMapping("/approve-tutor/{id}")
-    public ResponseEntity<Map<String, String>> approveTutor(@PathVariable Long id) {
-        String message = adminService.approveTutor(id);
-        return ResponseEntity.ok(Map.of("message", message));
-    }
+  // ✅ Approve Course
+@PutMapping("/tutor/approve/{id}")
+public ResponseEntity<Map<String, String>> approveTutor(@PathVariable Long id) {
+    String message = adminService.approveTutor(id);
+    return ResponseEntity.ok(Map.of("message", message));
+}
 
-    // ✅ Reject Tutor
-    @DeleteMapping("/reject-tutor/{id}")
-    public ResponseEntity<Map<String, String>> rejectTutor(@PathVariable Long id) {
-        String message = adminService.rejectTutor(id);
-        return ResponseEntity.ok(Map.of("message", message));
-    }
+
+// ❌ Reject Course
+@PutMapping("/tutor/reject/{id}")
+public ResponseEntity<Map<String, String>> rejectTutor(@PathVariable Long id) {
+    String message = adminService.rejectTutor(id);
+    return ResponseEntity.ok(Map.of("message", message));
+}
+
 }

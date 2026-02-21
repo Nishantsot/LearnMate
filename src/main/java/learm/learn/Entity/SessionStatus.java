@@ -1,3 +1,11 @@
 package learm.learn.Entity;
 
-public enum SessionStatus { SCHEDULED, COMPLETED, CANCELLED }
+public enum SessionStatus {
+
+    SCHEDULED,
+
+    LIVE,      // ✅ ADD THIS LINE
+
+    COMPLETED
+
+}

@@ -48,10 +48,10 @@ public class SecurityConfig {
                 .requestMatchers("/admin/**").hasRole("ADMIN")
 
                 // 🧑‍🏫 Tutor-only routes
-                .requestMatchers("/tutor/**").hasRole("TUTOR")
+                .requestMatchers("/tutor/**").hasAnyRole("TUTOR", "ADMIN")
+            
+                .requestMatchers("/student/**").hasAnyRole("STUDENT", "ADMIN")
 
-                // 🎓 Student-only routes (if you add later)
-                .requestMatchers("/student/**").hasRole("STUDENT")
 
                 // All other routes must be authenticated
                 .anyRequest().authenticated()

@@ -29,21 +29,30 @@ public class AuthService {
 
     private static final long OTP_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 
-    // ✅ REGISTER
-   public String register(User user) {
-    try {
+    // ================= REGISTER =================
+    public String register(User user) {
+
+        // ✅ HARD VALIDATION (ONLY HERE)
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            return "Email is required";
+        }
+
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            return "Password is required";
+        }
+
         Optional<User> existingOpt = userRepository.findByEmail(user.getEmail());
 
-        // 🟡 Case 1: User already exists
+        // 🔁 USER EXISTS
         if (existingOpt.isPresent()) {
             User existing = existingOpt.get();
 
-            // 🚫 Same role & already verified
+            // Already verified & same role
             if (existing.isVerified() && existing.getRole() == user.getRole()) {
-                return "Email already registered and verified.";
+                return "Email already registered and verified";
             }
 
-            // 🔁 Role change request (e.g. Student → Admin)
+            // Role change
             if (existing.isVerified() && existing.getRole() != user.getRole()) {
                 String otp = generateOtp();
                 existing.setOtp(otp);
@@ -51,161 +60,149 @@ public class AuthService {
                 existing.setVerified(false);
                 existing.setRole(user.getRole());
                 existing.setPassword(passwordEncoder.encode(user.getPassword()));
+
                 userRepository.save(existing);
-
                 emailService.sendOtp(existing.getEmail(), otp, "Role Change Verification");
-                System.out.println("🔁 Role change OTP for " + existing.getEmail() + " = " + otp);
 
-                return "Role updated to " + existing.getRole() + ". OTP sent for verification.";
+                return "Role updated. OTP sent for verification";
             }
 
-            // ⚠️ Not verified yet → resend OTP
+            // Not verified → resend OTP
             if (!existing.isVerified()) {
                 String otp = generateOtp();
                 existing.setOtp(otp);
                 existing.setOtpGeneratedAt(Instant.now().toEpochMilli());
                 userRepository.save(existing);
+
                 emailService.sendOtp(existing.getEmail(), otp, "Email Verification (Resent)");
-                System.out.println("🔁 Resent OTP for " + existing.getEmail() + " = " + otp);
-                return "This email is already registered but not verified. A new OTP has been sent.";
+                return "Account not verified. OTP resent";
             }
         }
 
-        // 🟢 Case 2: New user registration
+        // 🟢 NEW USER
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setVerified(false);
+        user.setRole(user.getRole() == null ? Role.STUDENT : user.getRole());
+
         String otp = generateOtp();
         user.setOtp(otp);
         user.setOtpGeneratedAt(Instant.now().toEpochMilli());
-        if (user.getRole() == null) user.setRole(Role.STUDENT);
+
         userRepository.save(user);
-
         emailService.sendOtp(user.getEmail(), otp, "Email Verification");
-        System.out.println("✅ OTP for " + user.getEmail() + " = " + otp);
 
-        return "OTP sent to your email. Please verify your account.";
-    } catch (Exception e) {
-        e.printStackTrace();
-        return "Registration failed: " + e.getMessage();
+        return "OTP sent to your email";
     }
+
+    // ================= VERIFY OTP =================
+   public String verifyOtp(String email, String otp) {
+
+    Optional<User> opt = userRepository.findByEmail(email);
+    if (opt.isEmpty()) return "User not found";
+
+    User user = opt.get();
+
+    if (user.isVerified()) return "User already verified";
+    if (user.getOtp() == null) return "No OTP requested";
+    if (!user.getOtp().equals(otp)) return "Invalid OTP";
+
+    if (Instant.now().toEpochMilli() - user.getOtpGeneratedAt() > OTP_EXPIRY_MS) {
+        return "OTP expired";
+    }
+
+    user.setVerified(true);
+
+    user.setActive(true);   // ✅ ADD THIS LINE
+
+    user.setOtp(null);
+    user.setOtpGeneratedAt(null);
+
+    userRepository.save(user);
+
+    return "Account verified successfully";
 }
 
-
-    // ✅ VERIFY OTP
-    public String verifyOtp(String email, String otp) {
-        try {
-            Optional<User> opt = userRepository.findByEmail(email);
-            if (opt.isEmpty()) return "User not found";
-
-            User user = opt.get();
-
-            if (user.isVerified()) return "User already verified";
-            if (user.getOtp() == null) return "No OTP requested";
-            if (!user.getOtp().equals(otp)) return "Invalid OTP";
-
-            if (Instant.now().toEpochMilli() - user.getOtpGeneratedAt() > OTP_EXPIRY_MS)
-                return "OTP expired";
-
-            user.setVerified(true);
-            user.setOtp(null);
-            user.setOtpGeneratedAt(null);
-            userRepository.save(user);
-            return "Account verified successfully";
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "Verification failed: " + e.getMessage();
-        }
-    }
-
-    // ✅ LOGIN
+    // ================= LOGIN =================
     public String login(String email, String rawPassword) {
-        try {
-            Optional<User> opt = userRepository.findByEmail(email);
-            if (opt.isEmpty()) return "User not found";
 
-            User user = opt.get();
+        Optional<User> opt = userRepository.findByEmail(email);
+        if (opt.isEmpty()) return "User not found";
 
-            if (!user.isVerified()) return "Please verify your email first";
-            if (!passwordEncoder.matches(rawPassword, user.getPassword())) return "Invalid credentials";
+        User user = opt.get();
 
-            return jwtUtil.generateToken(user.getEmail(), user.getRole().name());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "Login failed: " + e.getMessage();
+        if (!user.isVerified()) return "Please verify your email first";
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            return "Invalid credentials";
         }
+
+        return jwtUtil.generateToken(user.getEmail(), user.getRole().name());
     }
 
-    // ✅ FORGOT PASSWORD
-public String forgotPassword(String email) {
-    try {
+    // ================= FORGOT PASSWORD =================
+    public String forgotPassword(String email) {
+
         Optional<User> opt = userRepository.findByEmail(email);
         if (opt.isEmpty()) return "User not found";
 
         User user = opt.get();
         String otp = generateOtp();
+
         user.setOtp(otp);
         user.setOtpGeneratedAt(Instant.now().toEpochMilli());
         userRepository.save(user);
 
-        System.out.println("🔑 Password Reset OTP for " + email + " = " + otp); // 👈 add this line
-
-         emailService.sendOtp(user.getEmail(), otp, "Password Reset OTP");
-        return "Password reset OTP sent to your email";
-    } catch (Exception e) {
-        e.printStackTrace();
-        return "Error while sending password reset OTP: " + e.getMessage();
+        emailService.sendOtp(user.getEmail(), otp, "Password Reset OTP");
+        return "Password reset OTP sent";
     }
-}
 
-    // ✅ RESET PASSWORD
+    // ================= RESET PASSWORD =================
     public String resetPassword(String email, String otp, String newPassword) {
-        try {
-            Optional<User> opt = userRepository.findByEmail(email);
-            if (opt.isEmpty()) return "User not found";
 
-            User user = opt.get();
-            if (user.getOtp() == null || !user.getOtp().equals(otp)) return "Invalid OTP";
-            if (Instant.now().toEpochMilli() - user.getOtpGeneratedAt() > OTP_EXPIRY_MS) return "OTP expired";
-
-            user.setPassword(passwordEncoder.encode(newPassword));
-            user.setOtp(null);
-            user.setOtpGeneratedAt(null);
-            userRepository.save(user);
-
-            return "Password reset successful";
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "Password reset failed: " + e.getMessage();
+        if (newPassword == null || newPassword.isBlank()) {
+            return "New password is required";
         }
+
+        Optional<User> opt = userRepository.findByEmail(email);
+        if (opt.isEmpty()) return "User not found";
+
+        User user = opt.get();
+
+        if (user.getOtp() == null || !user.getOtp().equals(otp)) {
+            return "Invalid OTP";
+        }
+
+        if (Instant.now().toEpochMilli() - user.getOtpGeneratedAt() > OTP_EXPIRY_MS) {
+            return "OTP expired";
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setOtp(null);
+        user.setOtpGeneratedAt(null);
+        userRepository.save(user);
+
+        return "Password reset successful";
     }
 
-    // ✅ RESEND OTP
+    // ================= RESEND OTP =================
     public String resendOtp(String email) {
-        try {
-            Optional<User> opt = userRepository.findByEmail(email);
-            if (opt.isEmpty()) return "User not found";
 
-            User user = opt.get();
-            if (user.isVerified()) return "User already verified";
+        Optional<User> opt = userRepository.findByEmail(email);
+        if (opt.isEmpty()) return "User not found";
 
-            String otp = generateOtp();
-            user.setOtp(otp);
-            user.setOtpGeneratedAt(Instant.now().toEpochMilli());
-            userRepository.save(user);
+        User user = opt.get();
+        if (user.isVerified()) return "User already verified";
 
-            emailService.sendOtp(user.getEmail(), otp, "Resent Verification OTP");
-            System.out.println("🔁 Resent OTP for " + user.getEmail() + " = " + otp);
+        String otp = generateOtp();
+        user.setOtp(otp);
+        user.setOtpGeneratedAt(Instant.now().toEpochMilli());
+        userRepository.save(user);
 
-            return "New OTP sent to your email.";
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "Error while resending OTP: " + e.getMessage();
-        }
+        emailService.sendOtp(user.getEmail(), otp, "Resent Verification OTP");
+        return "New OTP sent";
     }
 
-    // ✅ OTP GENERATOR
+    // ================= OTP GENERATOR =================
     private String generateOtp() {
-        int val = new Random().nextInt(900000) + 100000;
-        return String.valueOf(val);
+        return String.valueOf(new Random().nextInt(900000) + 100000);
     }
 }

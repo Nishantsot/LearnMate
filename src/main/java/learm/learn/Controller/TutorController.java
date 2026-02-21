@@ -10,7 +10,8 @@ import learm.learn.Services.TutorService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import java.security.Principal;
 import java.util.*;
 
@@ -91,4 +92,32 @@ public class TutorController {
     public ResponseEntity<List<Material>> list(@RequestParam Long courseId){
         return ResponseEntity.ok(tutorService.listMaterials(courseId));
     }
+
+@PostMapping("/classes/{id}/start")
+public ResponseEntity<?> startClass(@PathVariable Long id,
+                                    Principal principal) {
+
+    try {
+
+        String email = principal.getName();
+
+        System.out.println("Tutor email: " + email);
+
+        ClassSession session =
+                tutorService.startSession(id, email);
+
+        return ResponseEntity.ok(session);
+
+    }
+    catch (Exception e) {
+
+        e.printStackTrace();
+
+        return ResponseEntity
+                .status(500)
+                .body(e.getMessage());
+
+    }
+
+}
 }

@@ -1,7 +1,9 @@
 package learm.learn.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,6 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Course {
 
     @Id
@@ -27,18 +30,31 @@ public class Course {
 
     private Double price;
 
-    // ⏱ Duration in minutes (optional)
+    // ⏱ Duration in minutes
     private Integer durationMinutes;
 
-    // 🔍 Approval status (Admin can approve/reject)
+    // 🔍 Approval status
     @Enumerated(EnumType.STRING)
     private CourseStatus status = CourseStatus.PENDING;
 
-    // 🕒 Auto-set when created
-    private LocalDateTime createdAt = LocalDateTime.now();
+    // 🕒 Created timestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
 
-    // 👨‍🏫 Linked tutor
+    // 👨‍🏫 Tutor
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tutor_id")
+    @JsonIgnoreProperties({
+        "password",
+        "otp",
+        "otpGeneratedAt",
+        "hibernateLazyInitializer",
+        "handler"
+    })
     private User tutor;
+
+    @PrePersist
+    public void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 }

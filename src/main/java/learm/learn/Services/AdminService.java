@@ -1,6 +1,8 @@
 package learm.learn.Services;
 
 
+import learm.learn.Entity.Course;
+import learm.learn.Entity.CourseStatus;
 import learm.learn.Entity.User;
 import learm.learn.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,9 @@ public class AdminService {
 
         return stats;
     }
+       public List<Course> getAllCourses() {
+        return courseRepo.findAll();
+    }
 
     // ✅ Get All Pending Tutors
     public List<Map<String, Object>> getPendingTutors() {
@@ -55,31 +60,30 @@ public class AdminService {
     }
 
     // ✅ Approve Tutor
-    public String approveTutor(Long id) {
-        User tutor = userRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tutor not found"));
-        tutor.setVerified(true);
-        userRepo.save(tutor);
+public String approveTutor(Long id) {
 
-        // Optional WebSocket broadcast
-        if (messagingTemplate != null) {
-            messagingTemplate.convertAndSend("/topic/admin", "Tutor approved: " + tutor.getName());
-        }
+    User tutor = userRepo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Tutor not found"));
 
-        return "Tutor " + tutor.getName() + " approved successfully!";
-    }
+    tutor.setVerified(true);      // mark verified
+    tutor.setActive(true);        // optional if you use active flag
 
-    // ✅ Reject Tutor (delete from DB)
-    public String rejectTutor(Long id) {
-        User tutor = userRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tutor not found"));
-        userRepo.delete(tutor);
+    userRepo.save(tutor);
 
-        // Optional WebSocket broadcast
-        if (messagingTemplate != null) {
-            messagingTemplate.convertAndSend("/topic/admin", "Tutor rejected: " + tutor.getName());
-        }
+    return "Tutor approved successfully";
+}
 
-        return "Tutor " + tutor.getName() + " rejected and removed.";
-    }
+
+
+public String rejectTutor(Long id) {
+
+    User tutor = userRepo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Tutor not found"));
+
+    userRepo.delete(tutor);   // OR setActive(false) if you don't want delete
+
+    return "Tutor rejected successfully";
+}
+
+
 }

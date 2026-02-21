@@ -1,7 +1,10 @@
 package learm.learn.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,6 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User {
 
     @Id
@@ -22,29 +26,42 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
+    // 🔐 NEVER expose password
+    
     @Column(nullable = false)
     private String password;
 
-    // ✅ Store role as string (e.g., ADMIN / STUDENT / TUTOR)
+    // ✅ ADMIN / STUDENT / TUTOR
     @Enumerated(EnumType.STRING)
     @Column(length = 50, nullable = false)
     private Role role = Role.STUDENT;
 
     private boolean verified = false;
 
-    // ✅ OTP details
-    private String otp;
-    private Long otpGeneratedAt; // epoch milliseconds
+    // 🔒 OTP should NEVER be exposed
 
-    // ✅ Created timestamp
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private String otp;
+
+    
+    private Long otpGeneratedAt;
+
+    // 🕒 Created timestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
 
     // ✅ User status
     private boolean active = true;
 
-    // ✅ Optional tutor details
-    private String subject;      // For tutors (e.g., "Math, Science")
+    // 🎓 Tutor info
+    private String subject;
+
     @Column(length = 1000)
-    private String bio;          // Tutor description
-    private String profilePhoto; // URL or base64 image link
+    private String bio;
+
+    private String profilePhoto;
+
+    @PrePersist
+    public void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 }
