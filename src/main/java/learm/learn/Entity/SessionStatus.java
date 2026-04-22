@@ -4,8 +4,7 @@ public enum SessionStatus {
 
     SCHEDULED,
 
-    LIVE,      // ✅ ADD THIS LINE
-
+    LIVE,      
     COMPLETED
 
 }

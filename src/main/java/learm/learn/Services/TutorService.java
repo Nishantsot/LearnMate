@@ -1,4 +1,3 @@
-// learm/learn/Services/TutorService.java
 package learm.learn.Services;
 
 import learm.learn.Dto.CreateCourseRequest;
@@ -49,7 +48,6 @@ public class TutorService {
 
     return user;
 }
-    /* Dashboard stats */
     public Map<String,Object> dashboard(String tutorEmail){
         User tutor = getTutorByEmail(tutorEmail);
         Map<String,Object> map = new LinkedHashMap<>();
@@ -66,7 +64,6 @@ public class TutorService {
     User tutor = getTutorByEmail(tutorEmail);
     return courseRepo.findByTutor(tutor);
 }
-    /* Courses */
    public Course createCourse(String tutorEmail, CreateCourseRequest req){
 
     if (req.getTitle() == null || req.getTitle().isBlank()) {
@@ -101,7 +98,7 @@ public class TutorService {
         c.setCategory(req.getCategory());
         c.setPrice(req.getPrice());
         c.setDurationMinutes(req.getDurationMinutes());
-        c.setStatus(CourseStatus.PENDING); // editing resets to review (optional)
+        c.setStatus(CourseStatus.PENDING); 
         return courseRepo.save(c);
     }
 

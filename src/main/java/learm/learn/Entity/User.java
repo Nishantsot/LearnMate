@@ -26,33 +26,27 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
-    // 🔐 NEVER expose password
     
     @Column(nullable = false)
     private String password;
 
-    // ✅ ADMIN / STUDENT / TUTOR
     @Enumerated(EnumType.STRING)
     @Column(length = 50, nullable = false)
     private Role role = Role.STUDENT;
 
     private boolean verified = false;
 
-    // 🔒 OTP should NEVER be exposed
 
     private String otp;
 
     
     private Long otpGeneratedAt;
 
-    // 🕒 Created timestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    // ✅ User status
     private boolean active = true;
 
-    // 🎓 Tutor info
     private String subject;
 
     @Column(length = 1000)

@@ -59,16 +59,22 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
 
                 // Create auth token. Authorities derive from role string.
-                UserDetails userDetails = org.springframework.security.core.userdetails.User
-                        .withUsername(user.getEmail())
-                        .password(user.getPassword())
-                        .authorities("ROLE_" + user.getRole().name())
-                        .build();
+            UserDetails userDetails = org.springframework.security.core.userdetails.User
+        .withUsername(user.getEmail())
+        .password(user.getPassword())
+        .authorities("ROLE_" + user.getRole().name())
+        .build();
 
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+UsernamePasswordAuthenticationToken authToken =
+        new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
+
+authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
 

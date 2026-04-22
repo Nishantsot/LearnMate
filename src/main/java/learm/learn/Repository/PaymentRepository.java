@@ -34,4 +34,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     // 🔹 6️⃣ Admin – Payments between dates (optional filter for reports)
     @Query("SELECT p FROM Payment p WHERE p.paymentDate BETWEEN :start AND :end")
     List<Payment> findPaymentsBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+    List<Payment> findByStudent(User student);
+
+long countByStudent(User student);
 }

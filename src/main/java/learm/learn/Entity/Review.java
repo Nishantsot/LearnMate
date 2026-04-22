@@ -14,7 +14,7 @@ public class Review {
     @ManyToOne(optional = false) private Course course;
     @ManyToOne(optional = false) private User student;
 
-    private int rating; // 1..5
+    private int rating; 
     @Column(length = 2000) private String comment;
 
     private LocalDateTime createdAt = LocalDateTime.now();

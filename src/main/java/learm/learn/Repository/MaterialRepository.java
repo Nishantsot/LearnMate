@@ -8,6 +8,5 @@ import java.util.List;
 
 public interface MaterialRepository extends JpaRepository<Material, Long> {
 
-    // 🔹 Get all materials for a course
     List<Material> findByCourse(Course course);
 }

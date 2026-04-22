@@ -11,7 +11,7 @@ public class ClassSession {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String roomId; // for live class (Zego/any)
+    private String roomId; 
 
     @ManyToOne(optional = false)
     private Course course;

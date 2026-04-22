@@ -20,7 +20,6 @@ public class Course {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 📘 Basic info
     private String title;
 
     @Column(length = 3000)
@@ -30,18 +29,14 @@ public class Course {
 
     private Double price;
 
-    // ⏱ Duration in minutes
     private Integer durationMinutes;
 
-    // 🔍 Approval status
     @Enumerated(EnumType.STRING)
     private CourseStatus status = CourseStatus.PENDING;
 
-    // 🕒 Created timestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    // 👨‍🏫 Tutor
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tutor_id")
     @JsonIgnoreProperties({

@@ -11,7 +11,7 @@ public class Material {
     private Long id;
 
     private String title;
-    private String url; // store S3/local path/link
+    private String url;
 
     @ManyToOne(optional = false)
     private Course course;

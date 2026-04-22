@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import learm.learn.Entity.Course;
+import learm.learn.Entity.User;
 import learm.learn.Services.AdminService;
 
 import java.util.*;
@@ -27,25 +29,45 @@ public ResponseEntity<?> allCourses() {
         return ResponseEntity.ok(adminService.getDashboardStats());
     }
 
-    // ✅ Pending Tutors List
-@GetMapping("/tutors/pending")
-    public ResponseEntity<List<Map<String, Object>>> getPendingTutors() {
-        return ResponseEntity.ok(adminService.getPendingTutors());
-    }
+    // // ✅ Pending Courses
+@GetMapping("/courses/pending")
+public ResponseEntity<List<Course>> pendingCourses(){
 
-  // ✅ Approve Course
-@PutMapping("/tutor/approve/{id}")
-public ResponseEntity<Map<String, String>> approveTutor(@PathVariable Long id) {
-    String message = adminService.approveTutor(id);
-    return ResponseEntity.ok(Map.of("message", message));
+    return ResponseEntity.ok(
+        adminService.getPendingCourses()
+    );
+
 }
 
 
-// ❌ Reject Course
-@PutMapping("/tutor/reject/{id}")
-public ResponseEntity<Map<String, String>> rejectTutor(@PathVariable Long id) {
-    String message = adminService.rejectTutor(id);
-    return ResponseEntity.ok(Map.of("message", message));
+// ✅ Approve Course
+@PutMapping("/course/approve/{id}")
+public ResponseEntity<Map<String,String>> approveCourse(
+@PathVariable Long id){
+
+    return ResponseEntity.ok(
+        Map.of("message",
+        adminService.approveCourse(id))
+    );
+
+}
+@GetMapping("/admin/students")
+public ResponseEntity<List<User>> getStudents(){
+
+    return ResponseEntity.ok(adminService.getAllStudents());
+
 }
 
+
+// ✅ Reject Course
+@PutMapping("/course/reject/{id}")
+public ResponseEntity<Map<String,String>> rejectCourse(
+@PathVariable Long id){
+
+    return ResponseEntity.ok(
+        Map.of("message",
+        adminService.rejectCourse(id))
+    );
+
+}
 }

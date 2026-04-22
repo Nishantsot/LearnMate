@@ -13,15 +13,14 @@ import java.util.*;
 
 @Service
 public class AdminService {
-
+@Autowired
+private UserRepository userRepository;
     @Autowired private UserRepository userRepo;
     @Autowired private CourseRepository courseRepo;
     @Autowired private BookingRepository bookingRepo;
     @Autowired private PaymentRepository paymentRepo;
     @Autowired(required = false)
-    private SimpMessagingTemplate messagingTemplate; // for WebSocket notifications
-
-    // ✅ Dashboard Summary
+    private SimpMessagingTemplate messagingTemplate; 
     public Map<String, Object> getDashboardStats() {
         Map<String, Object> stats = new HashMap<>();
 
@@ -40,50 +39,40 @@ public class AdminService {
         return courseRepo.findAll();
     }
 
-    // ✅ Get All Pending Tutors
-    public List<Map<String, Object>> getPendingTutors() {
-        List<User> tutors = userRepo.findPendingTutors();
-        List<Map<String, Object>> list = new ArrayList<>();
+public List<Course> getPendingCourses(){
 
-        for (User t : tutors) {
-            Map<String, Object> tutor = new HashMap<>();
-            tutor.put("id", t.getId());
-            tutor.put("name", t.getName());
-            tutor.put("email", t.getEmail());
-            tutor.put("subject", t.getSubject());
-            tutor.put("bio", t.getBio());
-            tutor.put("createdAt", t.getCreatedAt());
-            list.add(tutor);
-        }
+    return courseRepo.findByStatus(CourseStatus.PENDING);
 
-        return list;
-    }
-
-    // ✅ Approve Tutor
-public String approveTutor(Long id) {
-
-    User tutor = userRepo.findById(id)
-            .orElseThrow(() -> new RuntimeException("Tutor not found"));
-
-    tutor.setVerified(true);      // mark verified
-    tutor.setActive(true);        // optional if you use active flag
-
-    userRepo.save(tutor);
-
-    return "Tutor approved successfully";
 }
 
 
+public String approveCourse(Long id){
 
-public String rejectTutor(Long id) {
+    Course course = courseRepo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Course not found"));
 
-    User tutor = userRepo.findById(id)
-            .orElseThrow(() -> new RuntimeException("Tutor not found"));
+    course.setStatus(CourseStatus.APPROVED);
 
-    userRepo.delete(tutor);   // OR setActive(false) if you don't want delete
+    courseRepo.save(course);
 
-    return "Tutor rejected successfully";
+    return "Course approved successfully";
+
 }
+public String rejectCourse(Long id){
 
+    Course course = courseRepo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Course not found"));
 
+    course.setStatus(CourseStatus.REJECTED);
+
+    courseRepo.save(course);
+
+    return "Course rejected successfully";
+
+}
+public List<User> getAllStudents(){
+
+    return userRepository.findByRole("STUDENT");
+
+}
 }

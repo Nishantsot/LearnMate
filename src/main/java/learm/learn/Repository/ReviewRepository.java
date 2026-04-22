@@ -1,4 +1,3 @@
-// learm/learn/Repository/ReviewRepository.java
 package learm.learn.Repository;
 
 import learm.learn.Entity.Review;

@@ -29,10 +29,8 @@ public class AuthService {
 
     private static final long OTP_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 
-    // ================= REGISTER =================
     public String register(User user) {
 
-        // ✅ HARD VALIDATION (ONLY HERE)
         if (user.getEmail() == null || user.getEmail().isBlank()) {
             return "Email is required";
         }
@@ -43,16 +41,13 @@ public class AuthService {
 
         Optional<User> existingOpt = userRepository.findByEmail(user.getEmail());
 
-        // 🔁 USER EXISTS
         if (existingOpt.isPresent()) {
             User existing = existingOpt.get();
 
-            // Already verified & same role
             if (existing.isVerified() && existing.getRole() == user.getRole()) {
                 return "Email already registered and verified";
             }
 
-            // Role change
             if (existing.isVerified() && existing.getRole() != user.getRole()) {
                 String otp = generateOtp();
                 existing.setOtp(otp);
@@ -67,7 +62,6 @@ public class AuthService {
                 return "Role updated. OTP sent for verification";
             }
 
-            // Not verified → resend OTP
             if (!existing.isVerified()) {
                 String otp = generateOtp();
                 existing.setOtp(otp);
@@ -79,7 +73,6 @@ public class AuthService {
             }
         }
 
-        // 🟢 NEW USER
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setVerified(false);
         user.setRole(user.getRole() == null ? Role.STUDENT : user.getRole());
@@ -94,7 +87,6 @@ public class AuthService {
         return "OTP sent to your email";
     }
 
-    // ================= VERIFY OTP =================
    public String verifyOtp(String email, String otp) {
 
     Optional<User> opt = userRepository.findByEmail(email);
@@ -112,7 +104,7 @@ public class AuthService {
 
     user.setVerified(true);
 
-    user.setActive(true);   // ✅ ADD THIS LINE
+    user.setActive(true);   
 
     user.setOtp(null);
     user.setOtpGeneratedAt(null);
@@ -122,7 +114,6 @@ public class AuthService {
     return "Account verified successfully";
 }
 
-    // ================= LOGIN =================
     public String login(String email, String rawPassword) {
 
         Optional<User> opt = userRepository.findByEmail(email);
@@ -155,7 +146,6 @@ public class AuthService {
         return "Password reset OTP sent";
     }
 
-    // ================= RESET PASSWORD =================
     public String resetPassword(String email, String otp, String newPassword) {
 
         if (newPassword == null || newPassword.isBlank()) {
@@ -183,7 +173,6 @@ public class AuthService {
         return "Password reset successful";
     }
 
-    // ================= RESEND OTP =================
     public String resendOtp(String email) {
 
         Optional<User> opt = userRepository.findByEmail(email);
@@ -201,8 +190,14 @@ public class AuthService {
         return "New OTP sent";
     }
 
-    // ================= OTP GENERATOR =================
-    private String generateOtp() {
-        return String.valueOf(new Random().nextInt(900000) + 100000);
-    }
+   private String generateOtp() {
+
+    String otp = String.valueOf(new Random().nextInt(900000) + 100000);
+
+    System.out.println("================================");
+    System.out.println("OTP GENERATED: " + otp);
+    System.out.println("================================");
+
+    return otp;
+}
 }

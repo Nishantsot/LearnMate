@@ -1,4 +1,3 @@
-// learm/learn/Dto/CreateCourseRequest.java
 package learm.learn.Dto;
 import lombok.*;
 

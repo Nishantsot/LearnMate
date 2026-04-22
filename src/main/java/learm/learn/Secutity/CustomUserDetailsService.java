@@ -12,22 +12,24 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Autowired
     private UserRepository userRepository;
 
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        // Fetch user by email
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+ @Override
+public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-        // Block login if not verified
-        if (!user.isVerified()) {
-            throw new UsernameNotFoundException("Email not verified for user: " + email);
-        }
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
-        // Build Spring Security User object
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getEmail())
-                .password(user.getPassword())
-                .roles(user.getRole().name()) // Assign role like ROLE_ADMIN / ROLE_STUDENT
-                .build();
+    if (!user.isVerified()) {
+        throw new UsernameNotFoundException("Email not verified for user: " + email);
     }
+
+    return org.springframework.security.core.userdetails.User
+
+            .withUsername(user.getEmail())
+
+            .password(user.getPassword())
+
+            .authorities(user.getRole().name()) 
+
+            .build();
+}
 }

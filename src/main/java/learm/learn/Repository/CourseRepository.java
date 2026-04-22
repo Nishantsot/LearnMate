@@ -11,24 +11,20 @@ import java.util.List;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
 
-    // 🔹 Admin Dashboard
     @Query("SELECT COUNT(c) FROM Course c WHERE c.status = 'APPROVED'")
     long countApprovedCourses();
 
     @Query("SELECT COUNT(c) FROM Course c WHERE c.status = 'PENDING'")
     long countPendingCourses();
 
-    // 🔹 Tutor Dashboard — total courses
     long countByTutor(User tutor);
 
-    // 🔹 Tutor Dashboard — count courses by tutor and status
-    long countByTutorAndStatus(User tutor, CourseStatus status); // ✅ FIXED
+    long countByTutorAndStatus(User tutor, CourseStatus status); 
 
-    // 🔹 Lists
     List<Course> findByTutor(User tutor);
 
     List<Course> findByStatus(CourseStatus status);
 
-    // 🔹 Tutor-specific list (e.g., all pending tutor courses)
     List<Course> findByTutorAndStatus(User tutor, CourseStatus status);
+    
 }

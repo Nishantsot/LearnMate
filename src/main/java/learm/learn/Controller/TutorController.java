@@ -24,13 +24,12 @@ public class TutorController {
     private final TutorService tutorService;
     public TutorController(TutorService tutorService){ this.tutorService = tutorService; }
 
-    // 🔹 Dashboard stats
     @GetMapping("/dashboard")
     public ResponseEntity<Map<String,Object>> dashboard(Principal principal){
         return ResponseEntity.ok(tutorService.dashboard(principal.getName()));
     }
 
-    // 🔹 My courses
+    
     @GetMapping("/courses")
     public ResponseEntity<List<Course>> myCourses(Principal p){
         return ResponseEntity.ok(tutorService.myCourses(p.getName()));
@@ -52,7 +51,6 @@ public class TutorController {
         return ResponseEntity.ok(Map.of("message","Course deleted"));
     }
 
-    // 🔹 Schedule & live classes
     @PostMapping("/classes/schedule")
     public ResponseEntity<ClassSession> schedule(@RequestBody ScheduleClassRequest req,
                                                  @RequestParam(required = false) String roomId,
@@ -79,7 +77,6 @@ public class TutorController {
                 .orElse(ResponseEntity.status(404).body(Map.of("message","Room not found")));
     }
 
-    // 🔹 Materials
     @PostMapping("/materials")
     public ResponseEntity<Material> addMaterial(@RequestParam Long courseId,
                                                 @RequestParam String title,

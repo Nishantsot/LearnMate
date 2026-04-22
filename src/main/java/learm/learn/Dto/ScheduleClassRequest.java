@@ -1,4 +1,3 @@
-// learm/learn/Dto/ScheduleClassRequest.java
 package learm.learn.Dto;
 import lombok.*;
 import java.time.LocalDateTime;

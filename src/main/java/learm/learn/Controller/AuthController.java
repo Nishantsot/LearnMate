@@ -11,15 +11,13 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
-// ✅ Either remove this line (recommended) 
-// ✅ OR use explicit origin — no wildcard allowed with allowCredentials(true)
+
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class AuthController {
 
     @Autowired
     private AuthService authService;
 
-    // ✅ REGISTER
     @PostMapping("/register")
 public ResponseEntity<?> register(@RequestBody User incoming) {
 
@@ -35,7 +33,7 @@ public ResponseEntity<?> register(@RequestBody User incoming) {
 }
 
 
-    // ✅ RESEND OTP
+    
     @PostMapping("/resend-otp")
     public ResponseEntity<?> resendOtp(@RequestParam String email) {
         try {
@@ -51,7 +49,7 @@ public ResponseEntity<?> register(@RequestBody User incoming) {
         }
     }
 
-    // ✅ VERIFY OTP
+
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> request) {
         String email = request.get("email");
@@ -70,7 +68,7 @@ public ResponseEntity<?> register(@RequestBody User incoming) {
         }
     }
 
-    // ✅ LOGIN
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> payload) {
         String email = payload.get("email");
@@ -78,7 +76,6 @@ public ResponseEntity<?> register(@RequestBody User incoming) {
         try {
             String tokenOrMsg = authService.login(email, password);
 
-            // If looks like a JWT token (has 3 parts separated by '.')
             if (tokenOrMsg != null && tokenOrMsg.contains(".") && tokenOrMsg.split("\\.").length == 3) {
                 return ResponseEntity.ok(Map.of("token", tokenOrMsg));
             } else {
@@ -91,7 +88,6 @@ public ResponseEntity<?> register(@RequestBody User incoming) {
         }
     }
 
-    // ✅ FORGOT PASSWORD
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestParam String email) {
         try {
@@ -104,7 +100,6 @@ public ResponseEntity<?> register(@RequestBody User incoming) {
         }
     }
 
-    // ✅ RESET PASSWORD
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> payload) {
         try {
