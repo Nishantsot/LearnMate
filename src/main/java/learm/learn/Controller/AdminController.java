@@ -23,13 +23,13 @@ public ResponseEntity<?> allCourses() {
 }
 
 
-    // ✅ Dashboard Stats
+    //  Dashboard Stats
     @GetMapping("/dashboard")
     public ResponseEntity<Map<String, Object>> getDashboardData() {
         return ResponseEntity.ok(adminService.getDashboardStats());
     }
 
-    // // ✅ Pending Courses
+    //  Pending Courses
 @GetMapping("/courses/pending")
 public ResponseEntity<List<Course>> pendingCourses(){
 
@@ -40,7 +40,7 @@ public ResponseEntity<List<Course>> pendingCourses(){
 }
 
 
-// ✅ Approve Course
+//  Approve Course
 @PutMapping("/course/approve/{id}")
 public ResponseEntity<Map<String,String>> approveCourse(
 @PathVariable Long id){
@@ -59,7 +59,7 @@ public ResponseEntity<List<User>> getStudents(){
 }
 
 
-// ✅ Reject Course
+//  Reject Course
 @PutMapping("/course/reject/{id}")
 public ResponseEntity<Map<String,String>> rejectCourse(
 @PathVariable Long id){

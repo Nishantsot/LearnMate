@@ -18,7 +18,7 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
     List<ClassSession> findByTutorAndStartTimeAfter(User tutor, LocalDateTime after);
 
 
-    // ✅ ADD THIS (MOST IMPORTANT FIX)
+    //  ADD THIS (MOST IMPORTANT FIX)
     List<ClassSession> findByTutorOrderByStartTimeDesc(User tutor);
 
 

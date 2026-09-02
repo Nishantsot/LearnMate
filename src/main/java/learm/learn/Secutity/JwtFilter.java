@@ -35,9 +35,7 @@ public class JwtFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // =========================================
         // PUBLIC AUTH ROUTES
-        // =========================================
 
         String path = request.getServletPath();
 
@@ -46,9 +44,7 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        // =========================================
         // GET AUTHORIZATION HEADER
-        // =========================================
 
         final String header =
                 request.getHeader(HttpHeaders.AUTHORIZATION);
@@ -56,24 +52,18 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = null;
         String username = null;
 
-        // =========================================
         // NO TOKEN
-        // =========================================
 
         if (header == null || !header.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // =========================================
         // EXTRACT TOKEN
-        // =========================================
 
         token = header.substring(7);
 
-        // =========================================
         // VALIDATE TOKEN
-        // =========================================
 
         try {
 
@@ -105,9 +95,7 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        // =========================================
         // SET SECURITY CONTEXT
-        // =========================================
 
         if (username != null &&
                 SecurityContextHolder
@@ -131,9 +119,8 @@ public class JwtFilter extends OncePerRequestFilter {
                 return;
             }
 
-            // =====================================
             // CHECK EMAIL VERIFICATION
-            // =====================================
+            
 
             if (!user.isVerified()) {
 
@@ -147,11 +134,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 return;
             }
-
-            // =====================================
+          
             // CREATE USER DETAILS
-            // =====================================
-
             UserDetails userDetails =
                     org.springframework.security.core.userdetails.User
                             .withUsername(user.getEmail())
@@ -162,9 +146,9 @@ public class JwtFilter extends OncePerRequestFilter {
                             )
                             .build();
 
-            // =====================================
+           
             // CREATE AUTHENTICATION
-            // =====================================
+            
 
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(

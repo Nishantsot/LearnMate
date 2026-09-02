@@ -30,11 +30,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // ✅ Enable CORS and disable CSRF (important for React frontend)
+            //  Enable CORS and disable CSRF (important for React frontend)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
 
-            // ✅ Define authorization rules
+            //  Define authorization rules
             .authorizeHttpRequests(auth -> auth
                 // Public routes (register, login, verify OTP, forgot password, etc.)
                 .requestMatchers(
@@ -44,10 +44,10 @@ public class SecurityConfig {
                     "/v3/api-docs/**"
                 ).permitAll()
 
-                // 👑 Admin-only routes
+                // Admin-only routes
                 .requestMatchers("/admin/**").hasRole("ADMIN")
 
-                // 🧑‍🏫 Tutor-only routes
+                //  Tutor-only routes
                 .requestMatchers("/tutor/**").hasAnyRole("TUTOR", "ADMIN")
             
                 .requestMatchers("/student/**").hasAnyRole("STUDENT", "ADMIN")
@@ -57,20 +57,20 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
 
-            // ✅ Use JWT (stateless session)
+            //  Use JWT (stateless session)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            // ✅ Add JWT filter before default authentication filter
+            // Add JWT filter before default authentication filter
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
 
-            // ✅ Disable form & basic login
+            //  Disable form & basic login
             .formLogin(form -> form.disable())
             .httpBasic(basic -> basic.disable());
 
         return http.build();
     }
 
-    // ✅ Proper CORS setup for React
+    // Proper CORS setup for React
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -84,13 +84,13 @@ public class SecurityConfig {
         return source;
     }
 
-    // ✅ Password encoder (BCrypt)
+    //  Password encoder (BCrypt)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // ✅ Auth manager
+    // Auth manager
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
