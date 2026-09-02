@@ -24,7 +24,6 @@ public class EmailService {
         msg.setFrom(fromEmail);
         msg.setTo(to);
         msg.setSubject("LearnMate - " + purpose);
-
         msg.setText(
             "Your OTP is: " + otp +
             "\n\nThis OTP will expire in 5 minutes."
