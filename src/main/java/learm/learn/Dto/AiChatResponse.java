@@ -1,0 +1,18 @@
+package learm.learn.Dto;
+
+public class AiChatResponse {
+
+    private String answer;
+
+    public AiChatResponse(String answer) {
+        this.answer = answer;
+    }
+
+    public String getAnswer() {
+        return answer;
+    }
+
+    public void setAnswer(String answer) {
+        this.answer = answer;
+    }
+}
