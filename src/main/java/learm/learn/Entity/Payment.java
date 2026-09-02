@@ -1,6 +1,7 @@
 package learm.learn.Entity;
 
 import jakarta.persistence.*;
+import learm.learn.Dto.PaymentStatus;
 import lombok.*;
 import java.time.LocalDateTime;
 
@@ -31,10 +32,9 @@ public class Payment {
 
     private double amount;
 
-  @Enumerated(EnumType.STRING)
-private PaymentStatus status = PaymentStatus.SUCCESS;
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus status = PaymentStatus.SUCCESS;
 
-    
     private LocalDateTime paymentDate = LocalDateTime.now();
 
     @Column(unique = true)

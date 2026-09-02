@@ -1,8 +1,8 @@
 package learm.learn.Services;
 
+import learm.learn.Dto.PaymentStatus;
 import learm.learn.Entity.*;
 import learm.learn.Repository.*;
-import learm.learn.Entity.PaymentStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

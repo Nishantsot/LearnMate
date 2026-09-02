@@ -1,4 +1,4 @@
-package learm.learn.Entity;
+package learm.learn.Dto;
 
 public enum PaymentStatus {
     SUCCESS,
